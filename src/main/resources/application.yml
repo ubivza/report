@@ -1,0 +1,17 @@
+api:
+  prefix:
+    public: ${REPORT_WEB_PREFIX_PUBLIC:/api/report}
+
+spring:
+  datasource:
+    url: ${REPORT_DATASOURCE_URL:jdbc:h2:mem:cdr_db}
+    username: ${REPORT_DATASOURCE_USERNAME:user}
+    password: ${REPORT_DATASOURCE_PASSWORD:password}
+    driverClassName: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+  h2:
+    console:
+      enabled: true
