@@ -1,0 +1,175 @@
+{
+	"info": {
+		"_postman_id": "dc1223dd-0854-4fe7-9cba-6c22cfc76690",
+		"name": "Nexign Bootcamp'25 - Инженерные практики test task api collection",
+		"description": "Flow:\n\nRun customers endpoint to get their numbers -> then use them for other tests, 2024 year was used for generated records, so other years not supported (yet).  \nFollow localhost:8080/h2-console when application started to see database",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31789287"
+	},
+	"item": [
+		{
+			"name": "customers",
+			"item": [
+				{
+					"name": "all",
+					"item": [
+						{
+							"name": "Get customers numbers",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/report/customers/all",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"report",
+										"customers",
+										"all"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "udr",
+			"item": [
+				{
+					"name": "{phoneNumber}",
+					"item": [
+						{
+							"name": "Request one customer report",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/report/udr/:phoneNumber?fullPeriod=true",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"report",
+										"udr",
+										":phoneNumber"
+									],
+									"query": [
+										{
+											"key": "month",
+											"value": "2024-02",
+											"description": "yyyy-MM format, backend generates records for 2024 year only, so use it",
+											"disabled": true
+										},
+										{
+											"key": "fullPeriod",
+											"value": "true",
+											"description": "default false, dont include month and set true for udr report for full billing period"
+										}
+									],
+									"variable": [
+										{
+											"key": "phoneNumber",
+											"value": "98145678907",
+											"description": "11 digits allowed only"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "all",
+					"item": [
+						{
+							"name": "Request all customers report",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/report/udr/all?month=2024-11",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"report",
+										"udr",
+										"all"
+									],
+									"query": [
+										{
+											"key": "month",
+											"value": "2024-11",
+											"description": "yyyy-MM format, backend generates records for 2024 year only, so use it"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "cdr",
+			"item": [
+				{
+					"name": "Endpoint to generate cdr report file",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/report/cdr/:phoneNumber?start=2024-01-01T00:00:00Z&end=2024-12-30T23:59:59Z",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"report",
+								"cdr",
+								":phoneNumber"
+							],
+							"query": [
+								{
+									"key": "start",
+									"value": "2024-01-01T00:00:00Z",
+									"description": "yyyy-MM-DDThh:mm:ssZ format"
+								},
+								{
+									"key": "end",
+									"value": "2024-12-30T23:59:59Z",
+									"description": "yyyy-MM-DDThh:mm:ssZ format"
+								}
+							],
+							"variable": [
+								{
+									"key": "phoneNumber",
+									"value": "98145678904",
+									"description": "11 digits allowed only"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
