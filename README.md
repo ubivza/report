@@ -79,6 +79,8 @@ GET /api/report/udr/all?month=2024-11 - возвращает UDR отчет по
 
 POST /api/report/cdr/:phoneNumber?start=2024-01-01T00:00:00Z&end=2024-12-30T23:59:59Z - генерирует CDR отчет в формате csv по заданному номеру и периоду и сохраняет в корне проекта в папке reports 
 
+Для работы с апи к заданию прикреплена коллекция постман со всеми необходимыми настройками и ендпоинтами
+
 Генерация данных происходит в момент обновления спринг контекста - когда он собран. Генераторы данных расположены в методах com.mobile.network.report.service.impl.CustomerServiceImpl#generateCustomers и для CDR com.mobile.network.report.service.impl.CDRRecordGeneratorServiceImpl#generateCDRRecords
 
 CDR записи генерируются по переданному году, алгоритм генерации:
