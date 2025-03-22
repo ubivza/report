@@ -129,45 +129,85 @@
 			"name": "cdr",
 			"item": [
 				{
-					"name": "Endpoint to generate cdr report file",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/api/report/cdr/:phoneNumber?start=2024-01-01T00:00:00Z&end=2024-12-30T23:59:59Z",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"api",
-								"report",
-								"cdr",
-								":phoneNumber"
-							],
-							"query": [
-								{
-									"key": "start",
-									"value": "2024-01-01T00:00:00Z",
-									"description": "yyyy-MM-DDThh:mm:ssZ format"
-								},
-								{
-									"key": "end",
-									"value": "2024-12-30T23:59:59Z",
-									"description": "yyyy-MM-DDThh:mm:ssZ format"
+					"name": "{phoneNumber}",
+					"item": [
+						{
+							"name": "Endpoint to generate cdr report file",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/report/cdr/:phoneNumber?start=2024-01-01T00:00:00Z&end=2024-12-30T23:59:59Z",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"report",
+										"cdr",
+										":phoneNumber"
+									],
+									"query": [
+										{
+											"key": "start",
+											"value": "2024-01-01T00:00:00Z",
+											"description": "yyyy-MM-DDThh:mm:ssZ format"
+										},
+										{
+											"key": "end",
+											"value": "2024-12-30T23:59:59Z",
+											"description": "yyyy-MM-DDThh:mm:ssZ format"
+										}
+									],
+									"variable": [
+										{
+											"key": "phoneNumber",
+											"value": "98145678904",
+											"description": "11 digits allowed only"
+										}
+									]
 								}
-							],
-							"variable": [
-								{
-									"key": "phoneNumber",
-									"value": "98145678904",
-									"description": "11 digits allowed only"
-								}
-							]
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
+				},
+				{
+					"name": "status",
+					"item": [
+						{
+							"name": "Check CDR report status",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/report/cdr/status/:requestId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"report",
+										"cdr",
+										"status",
+										":requestId"
+									],
+									"variable": [
+										{
+											"key": "requestId",
+											"value": "",
+											"description": "UUID of CDR report generation request"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		}
