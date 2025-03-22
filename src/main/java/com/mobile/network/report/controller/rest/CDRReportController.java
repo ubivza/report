@@ -2,12 +2,14 @@ package com.mobile.network.report.controller.rest;
 
 import com.mobile.network.report.model.outer.CDRFileReportDto;
 import com.mobile.network.report.service.api.CDRReportService;
+import com.mobile.network.report.service.api.ReportStatusService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CDRReportController {
 
     private final CDRReportService cdrReportService;
+    private final ReportStatusService reportStatusService;
 
     /**
      * Неблокирующий пост запрос, возвращает uuid запроса сразу,
@@ -50,5 +53,15 @@ public class CDRReportController {
         return CDRFileReportDto.builder()
             .requestId(requestId)
             .build();
+    }
+
+    /**
+     * Ендпоинт предоставляет проверку статуса формирования отчета
+     * @param requestId UUID ответ из ендпоинта на формирование
+     * @return статус запроса
+     */
+    @GetMapping("/status/{requestId}")
+    public String getReportStatus(@PathVariable UUID requestId) {
+        return reportStatusService.getStatus(requestId);
     }
 }

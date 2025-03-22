@@ -7,6 +7,7 @@ import com.mobile.network.report.model.inner.CDRRecordDto;
 import com.mobile.network.report.model.outer.UDRReportDto;
 import com.mobile.network.report.service.api.UDRReportFormatterService;
 import com.mobile.network.report.service.api.UDRReportService;
+import com.mobile.network.report.utils.DateTimeUtils;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.util.List;
@@ -53,8 +54,8 @@ public class UDRReportServiceImpl implements UDRReportService {
      */
     @Override
     public UDRReportDto getUDRForCustomerByMonth(String phoneNumber, YearMonth yearMonth) {
-        Instant start = yearMonth.atDay(1).atStartOfDay().toInstant(java.time.ZoneOffset.UTC);
-        Instant end = yearMonth.atEndOfMonth().atTime(23, 59, 59).toInstant(java.time.ZoneOffset.UTC);
+        Instant start = DateTimeUtils.getStartOfMonth(yearMonth);
+        Instant end = DateTimeUtils.getEndOfMonth(yearMonth);
 
         log.info("Start period from: {}", start);
         log.info("End period on: {}", end);
@@ -82,8 +83,8 @@ public class UDRReportServiceImpl implements UDRReportService {
      */
     @Override
     public List<UDRReportDto> getUDRForAllCustomersByMonth(YearMonth yearMonth) {
-        Instant start = yearMonth.atDay(1).atStartOfDay().toInstant(java.time.ZoneOffset.UTC);
-        Instant end = yearMonth.atEndOfMonth().atTime(23, 59, 59).toInstant(java.time.ZoneOffset.UTC);
+        Instant start = DateTimeUtils.getStartOfMonth(yearMonth);
+        Instant end = DateTimeUtils.getEndOfMonth(yearMonth);
 
         log.info("Start period from: {}", start);
         log.info("End period on: {}", end);

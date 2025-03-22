@@ -1,9 +1,9 @@
 package com.mobile.network.report.handler;
 
 import com.mobile.network.report.exception.NotFoundException;
-import com.mobile.network.report.exception.ServerException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,8 +25,12 @@ public class GlobalExceptionController {
     @ExceptionHandler({ConstraintViolationException.class})
     @ResponseBody
     public ErrorResponse handleConstraintCheck(ConstraintViolationException ex) {
+        String message = ex.getConstraintViolations()
+            .iterator()
+            .next()
+            .getMessage();
         return ErrorResponse.builder()
-            .message(ex.getMessage())
+            .message(message)
             .build();
     }
 
@@ -39,10 +43,10 @@ public class GlobalExceptionController {
             .build();
     }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({ServerException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({MissingServletRequestParameterException.class})
     @ResponseBody
-    public ErrorResponse handleServerException(ServerException ex) {
+    public ErrorResponse handleServerException(MissingServletRequestParameterException ex) {
         return ErrorResponse.builder()
             .message(ex.getMessage())
             .build();

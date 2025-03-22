@@ -26,6 +26,7 @@ public class CustomerController {
      */
     @GetMapping("/all")
     public List<CustomerDto> getCustomers() {
+
         return service.getAllCustomers();
     }
 }

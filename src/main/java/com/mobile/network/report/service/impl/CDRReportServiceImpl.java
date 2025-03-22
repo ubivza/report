@@ -3,8 +3,9 @@ package com.mobile.network.report.service.impl;
 import com.mobile.network.report.db.entity.CDRRecord;
 import com.mobile.network.report.db.repository.CDRRecordRepository;
 import com.mobile.network.report.exception.NotFoundException;
-import com.mobile.network.report.exception.ServerException;
 import com.mobile.network.report.service.api.CDRReportService;
+import com.mobile.network.report.service.api.ReportStatusService;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,11 @@ import org.springframework.stereotype.Service;
 public class CDRReportServiceImpl implements CDRReportService {
 
     private final CDRRecordRepository repository;
+    private final ReportStatusService reportStatusService;
+
+    private static final String CSV_HEADER = "id,call_type,caller_phone_number,receiver_phone_number,call_start_time,call_end_time";
+    @Value("${app.reports-dir}")
+    private String reportsDir;
 
     /**
      * Метод асинхронно формирующий отчеты (каждый в своем потоке)
@@ -45,7 +52,7 @@ public class CDRReportServiceImpl implements CDRReportService {
             List<CDRRecord> summaryRecordsList = Stream.concat(recordsAsCaller.stream(), recordsAsReceiver.stream()).toList();
 
             String fileName = String.format("%s_%s.csv", phoneNumber, requestId);
-            File reportDir = new File("reports");
+            File reportDir = new File(reportsDir);
 
             if (!reportDir.exists()) {
                 reportDir.mkdirs();
@@ -53,10 +60,8 @@ public class CDRReportServiceImpl implements CDRReportService {
 
             File reportFile = new File(reportDir, fileName);
 
-            try (FileWriter writer = new FileWriter(reportFile)) {
-
-                writer.write("id,call_type,caller_phone_number,receiver_phone_number,call_start_time,call_end_time" + System.lineSeparator());
-
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(reportFile))) {
+                writer.write(CSV_HEADER + System.lineSeparator());
                 for (CDRRecord record : summaryRecordsList) {
                     writer.write(String.format("%s,%s,%s,%s,%s,%s" + System.lineSeparator(),
                         record.getId(),
@@ -67,12 +72,16 @@ public class CDRReportServiceImpl implements CDRReportService {
                         record.getCallEndTime()));
                 }
             }
+            reportStatusService.setStatus(requestId, "Successfully");
         } catch (IOException e) {
             log.info("Failed to generate cdr report file {}", e.getMessage());
-            throw new ServerException("Server failed to generate report file.");
+            reportStatusService.setStatus(requestId, "Server failed to generate report file.");
+        } catch (NotFoundException e){
+            log.info("Not found {}", e.getMessage());
+            reportStatusService.setStatus(requestId, "Records with phone number " + phoneNumber + " not found for provided period");
         } catch (Exception e) {
             log.info("Unexpected error during CDR report generation: {}", e.getMessage());
-            throw new ServerException("Unexpected fail");
+            reportStatusService.setStatus(requestId, "Unexpected fail");
         }
     }
 }
