@@ -1,6 +1,7 @@
 package com.mobile.network.report.controller.rest;
 
 import com.mobile.network.report.model.outer.CDRFileReportDto;
+import com.mobile.network.report.model.outer.CDRReportFileStatusDto;
 import com.mobile.network.report.service.api.CDRReportService;
 import com.mobile.network.report.service.api.ReportStatusService;
 import jakarta.validation.Valid;
@@ -61,7 +62,10 @@ public class CDRReportController {
      * @return статус запроса
      */
     @GetMapping("/status/{requestId}")
-    public String getReportStatus(@PathVariable UUID requestId) {
-        return reportStatusService.getStatus(requestId);
+    public CDRReportFileStatusDto getReportStatus(@PathVariable UUID requestId) {
+        String status = reportStatusService.getStatus(requestId);
+        return CDRReportFileStatusDto.builder()
+            .status(status)
+            .build();
     }
 }
