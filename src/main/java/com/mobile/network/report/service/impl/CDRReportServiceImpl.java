@@ -67,7 +67,7 @@ public class CDRReportServiceImpl implements CDRReportService {
                 for (CDRRecord record : summaryRecordsList) {
                     writer.write(String.format("%s,%s,%s,%s,%s,%s" + System.lineSeparator(),
                         record.getId(),
-                        record.getCallType(),
+                        record.getCallType().getType(),
                         record.getCallerPhoneNumber(),
                         record.getReceiverPhoneNumber(),
                         record.getCallStartTime(),
