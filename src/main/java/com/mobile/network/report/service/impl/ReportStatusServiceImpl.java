@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ReportStatusServiceImpl implements ReportStatusService {
     private final Map<UUID, String> reportStatus = new ConcurrentHashMap<>();
+    private static final String DEFAULT_STATUS = "There is no report with this UUID";
 
     @Override
     public void setStatus(UUID requestId, String status) {
@@ -20,6 +21,6 @@ public class ReportStatusServiceImpl implements ReportStatusService {
 
     @Override
     public String getStatus(UUID requestId) {
-        return reportStatus.getOrDefault(requestId, "There is no report with this UUID");
+        return reportStatus.getOrDefault(requestId, DEFAULT_STATUS);
     }
 }
