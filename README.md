@@ -84,7 +84,7 @@ GET /api/report/udr/:phoneNumber?month=2024-03&fullPeriod=false - возвращ
 
 GET /api/report/udr/all?month=2024-11 - возвращает UDR отчет по всем пользователям за заданный период
 
-POST /api/report/cdr/:phoneNumber?start=2024-01-01T00:00:00Z&end=2024-12-30T23:59:59Z - асинхронно запускает генерацию CDR отчета в формате csv по заданному номеру и периоду и сохраняет в корне проекта в папке reports 
+POST /api/report/cdr/:phoneNumber?start=2024-01-01T00:00:00Z&end=2024-12-30T23:59:59Z - асинхронно запускает генерацию CDR отчета в формате csv по заданному номеру и периоду, создает папку reports в корне где лежит джарник и в ней создает файл отчета
 
 GET /api/report/cdr/status/:requestId - возвращает статус формирования отчета по его UUID
 
