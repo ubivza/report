@@ -3,6 +3,9 @@ package com.mobile.network.report.service.impl;
 import com.mobile.network.report.db.entity.CDRRecord;
 import com.mobile.network.report.db.entity.CallType;
 import com.mobile.network.report.db.repository.CDRRecordRepository;
+import com.mobile.network.report.integration.rabbitmq.producer.CDRRecordSender;
+import com.mobile.network.report.integration.rabbitmq.producer.api.CDRRecordMessage;
+import com.mobile.network.report.integration.rabbitmq.producer.api.CDRReportMessage;
 import com.mobile.network.report.mapper.CDRRecordMapper;
 import com.mobile.network.report.model.inner.CDRRecordDto;
 import com.mobile.network.report.model.inner.CustomerDto;
@@ -13,13 +16,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Класс генератор CDR записей по условию постановки
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService {
@@ -27,6 +33,7 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
     private final CDRRecordRepository repository;
     private final CustomerService customerService;
     private final CDRRecordMapper mapper;
+    private final CDRRecordSender cdrRecordSender;
 
     private final Random random = new Random();
 
@@ -35,9 +42,12 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
      * @param year год за который создаются записи
      * @return список записей для последующего сохранения
      */
+    //TODO rework sending to broker, add day end logic, and parallel generation
     @Override
     public List<CDRRecordDto> generateCDRRecords(int year) {
+        AtomicInteger countMessages = new AtomicInteger();
         List<CDRRecordDto> generatedRecords = new ArrayList<>();
+        List<CDRRecordDto> recordsToSend = new ArrayList<>();
 
         Instant startOfYear = Instant.parse(year + "-01-01T00:00:00Z");
         Instant endOfYear = Instant.parse(year + "-12-31T23:59:59Z");
@@ -53,6 +63,12 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
 
         Instant currentTime = startOfYear;
         for (int i = 0; i < totalCalls; i++) {
+
+            if (recordsToSend.size() == 10) {
+                sendCDRRecord(recordsToSend);
+                countMessages.incrementAndGet();
+            }
+
             long intervalSeconds = averageIntervalSeconds + random.nextInt(3600) - 1800;
             currentTime = currentTime.plusSeconds(intervalSeconds);
 
@@ -61,7 +77,15 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
             }
 
             CDRRecordDto cdrRecord = generateSingleCDRRecord(customers, currentTime);
+            recordsToSend.add(cdrRecord);
             generatedRecords.add(cdrRecord);
+        }
+
+        if (!recordsToSend.isEmpty()) {
+            sendCDRRecord(recordsToSend);
+            log.info("Records before last send {}", recordsToSend.size());
+            log.info("Records at all {}", generatedRecords.size());
+            log.info("Messages sent to broker {}", countMessages.incrementAndGet());
         }
 
         return generatedRecords;
@@ -102,5 +126,16 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
             .callStartTime(callStartTime)
             .callEndTime(callEndTime)
             .build();
+    }
+
+    private void sendCDRRecord(List<CDRRecordDto> recordsToSend) {
+        List<CDRRecordMessage> cdrRecordMessages = recordsToSend.stream()
+            .map(mapper::toMessage)
+            .toList();
+
+        cdrRecordSender.send(CDRReportMessage.builder()
+            .cdrRecords(cdrRecordMessages)
+            .build());
+        recordsToSend.clear();
     }
 }

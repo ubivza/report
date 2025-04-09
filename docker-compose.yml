@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    hostname: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=test
+      - RABBITMQ_DEFAULT_PASS=test
+#      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648 #Увеличиваем дефолтное капасити
+#    volumes:
+#      - ./rabbitmq:/var/lib/rabbitmq #сохранение стейта локально на диск а не только в контейнер
+    ports:
+      - "5672:5672"
+      - "15672:15672"

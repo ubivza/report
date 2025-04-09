@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * Класс слушающий обновление спринг контекста, и когда контекст собран вызывает фасады генерирующие записи в бд
  */
+//TODO подумать над альтернативой
 @Slf4j
 @Component
 @RequiredArgsConstructor
