@@ -77,3 +77,21 @@ CDR записи генерируются по переданному году. 
 ### Используемые библиотеки
 - **MapStruct**: Для уменьшения шаблонного кода генерации мапперов Message <-> DTO <-> Entity.
 - **Lombok**: Для уменьшения бойлерплейт кода.
+
+### Тестирование
+1. Скачать джарник из релиза, и докер компоуз
+2. docker compose up в директории где лежит docker-compose.yml
+3. Стартануть приложение java -jar report-1.0.2-SNAPSHOT.jar
+4. Проверить по http://localhost:15672 что в реббит пришло кол-во сообщений равное 
+кол-ву записей в бд / 10 + 1 http://localhost:8080/h2-console
+
+Доступы:
+
+#### H2 UI:
+- username: user
+- password: password
+#### RabbitMQ UI:
+- username: test
+- password: test
+5. Проверить что они пришли в нужный exchange (**cdr.report.send**), queue (**cdr.queue**) и имеют верный routing key (**cdr_record**)
+

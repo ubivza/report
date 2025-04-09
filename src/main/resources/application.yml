@@ -34,7 +34,7 @@ rabbitmq:
   exchange-name:
       cdr:
         send:
-          name: ${RABBITMQ_EXCHANGE_NAME_REPORT_CDR_SEND:report.cdr.send}
+          name: ${RABBITMQ_EXCHANGE_NAME_REPORT_CDR_SEND:cdr.report.send}
   queue:
     cdr:
       name: ${RABBITMQ_QUEUE_CDR_NAME:cdr.queue}
