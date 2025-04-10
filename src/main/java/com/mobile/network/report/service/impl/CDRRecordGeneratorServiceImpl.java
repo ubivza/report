@@ -12,6 +12,8 @@ import com.mobile.network.report.model.inner.CustomerDto;
 import com.mobile.network.report.service.api.CDRRecordGeneratorService;
 import com.mobile.network.report.service.api.CustomerService;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +44,7 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
      * @param year год за который создаются записи
      * @return список записей для последующего сохранения
      */
-    //TODO rework sending to broker, add day end logic, and parallel generation
+    //TODO rework sending to broker, and parallel generation
     @Override
     public List<CDRRecordDto> generateCDRRecords(int year) {
         AtomicInteger countMessages = new AtomicInteger();
@@ -76,14 +78,23 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
                 break;
             }
 
-            CDRRecordDto cdrRecord = generateSingleCDRRecord(customers, currentTime);
-            recordsToSend.add(cdrRecord);
-            generatedRecords.add(cdrRecord);
+            List<CDRRecordDto> cdrRecords = generateCDRRecords(customers, currentTime);
+
+            if (recordsToSend.size() == 9 && cdrRecords.size() == 2) {
+                recordsToSend.add(cdrRecords.get(0));
+                sendCDRRecord(recordsToSend);
+                countMessages.incrementAndGet();
+                recordsToSend.add(cdrRecords.get(1));
+            } else {
+                recordsToSend.addAll(cdrRecords);
+            }
+
+            generatedRecords.addAll(cdrRecords);
         }
 
         if (!recordsToSend.isEmpty()) {
-            sendCDRRecord(recordsToSend);
             log.info("Records before last send {}", recordsToSend.size());
+            sendCDRRecord(recordsToSend);
             log.info("Records at all {}", generatedRecords.size());
             log.info("Messages sent to broker {}", countMessages.incrementAndGet());
         }
@@ -106,7 +117,7 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
      * @param callStartTime сгенеренное в основном методе время начала звонка
      * @return единичную запись CDR с заполненными полями
      */
-    private CDRRecordDto generateSingleCDRRecord(List<CustomerDto> customers, Instant callStartTime) {
+    private List<CDRRecordDto> generateCDRRecords(List<CustomerDto> customers, Instant callStartTime) {
         CustomerDto caller = customers.get(random.nextInt(customers.size()));
         CustomerDto receiver = customers.get(random.nextInt(customers.size()));
 
@@ -119,13 +130,36 @@ public class CDRRecordGeneratorServiceImpl implements CDRRecordGeneratorService 
         long durationSeconds = random.nextInt(600 - 10 + 1) + 10;
         Instant callEndTime = callStartTime.plusSeconds(durationSeconds);
 
-        return CDRRecordDto.builder()
-            .callType(callType)
-            .callerPhoneNumber(caller.getPhoneNumber())
-            .receiverPhoneNumber(receiver.getPhoneNumber())
-            .callStartTime(callStartTime)
-            .callEndTime(callEndTime)
-            .build();
+        ZonedDateTime callStartZoned = callStartTime.atZone(ZoneOffset.UTC);
+        ZonedDateTime nextDayStart = callStartZoned.truncatedTo(ChronoUnit.DAYS).plusDays(1);
+
+        if (callEndTime.isAfter(nextDayStart.toInstant()) && callStartTime.isBefore(nextDayStart.toInstant())) {
+            CDRRecordDto cdrRecordDtoBeforeMidnight = CDRRecordDto.builder()
+                .callType(callType)
+                .callerPhoneNumber(caller.getPhoneNumber())
+                .receiverPhoneNumber(receiver.getPhoneNumber())
+                .callStartTime(callStartTime)
+                .callEndTime(nextDayStart.toInstant())
+                .build();
+
+            CDRRecordDto cdrRecordDtoAfterMidnight = CDRRecordDto.builder()
+                .callType(callType)
+                .callerPhoneNumber(caller.getPhoneNumber())
+                .receiverPhoneNumber(receiver.getPhoneNumber())
+                .callStartTime(nextDayStart.toInstant())
+                .callEndTime(callEndTime)
+                .build();
+
+            return List.of(cdrRecordDtoBeforeMidnight, cdrRecordDtoAfterMidnight);
+        } else {
+            return List.of(CDRRecordDto.builder()
+                .callType(callType)
+                .callerPhoneNumber(caller.getPhoneNumber())
+                .receiverPhoneNumber(receiver.getPhoneNumber())
+                .callStartTime(callStartTime)
+                .callEndTime(callEndTime)
+                .build());
+        }
     }
 
     private void sendCDRRecord(List<CDRRecordDto> recordsToSend) {
